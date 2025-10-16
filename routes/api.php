@@ -11,6 +11,7 @@ use App\Http\Controllers\{
     HeadOfFamilyController,
     ResidentController
 };
+use App\Models\HeadOfFamily;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -32,6 +33,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Kepala Keluarga
     Route::middleware('role:user')->group(function () {
         Route::apiResource('my-residents', ResidentController::class)->only(['index','show','store','update','destroy']);
+        Route::apiResource('residents', HeadOfFamilyController::class)->only(['index','show','store','update','destroy']);
 
         Route::post('/my-aid-applications', [AidApplicationController::class, 'store']);
         Route::get('/my-aid-applications', [AidApplicationController::class, 'myApplications']);

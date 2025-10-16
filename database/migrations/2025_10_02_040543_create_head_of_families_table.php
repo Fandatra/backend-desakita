@@ -12,18 +12,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('head_of_families', function (Blueprint $table) {
-    $table->id();
-    $table->foreignId('user_id')->constrained()->onDelete('cascade');
-    $table->string('profile_picture')->nullable();
-    $table->string('nik')->unique();
-    $table->enum('gender', ['male', 'female']);
-    $table->date('date_of_birth');
-    $table->string('phone_number');
-    $table->string('address');
-    $table->string('occupation');
-    $table->enum('marital_status', ['single', 'married', 'divorced']);
-    $table->timestamps();
-});
+            $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->string('profile_picture')->nullable();
+            $table->string('nik')->nullable()->unique();
+            $table->enum('gender', ['male', 'female'])->nullable();
+            $table->date('date_of_birth')->nullable();
+            $table->string('phone_number')->nullable();
+            $table->string('address')->nullable();
+            $table->string('occupation')->nullable();
+            $table->enum('marital_status', ['single', 'married', 'divorced'])->nullable();
+            $table->timestamps();
+        });
 
     }
 
