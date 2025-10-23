@@ -19,7 +19,7 @@ class HeadOfFamilyController extends Controller
     {
         $validated = $request->validate([
             'user_id'        => 'required|exists:users,id',
-            'profile_picture'=> 'nullable|string',
+            'profile_picture' => 'nullable|file|mimes:jpg,png,jpeg|max:2048',
             'nik'            => 'required|string|unique:head_of_families,nik',
             'gender'         => 'required|in:male,female',
             'date_of_birth'  => 'required|date',
@@ -28,6 +28,11 @@ class HeadOfFamilyController extends Controller
             'occupation'     => 'nullable|string',
             'marital_status' => 'required|in:single,married,divorced',
         ]);
+
+        if ($request->hasFile('profile_picture')) {
+            $path = $request->file('profile_picture')->store('profiles', 'public');
+            $validated['profile_picture'] = $path;
+        }
 
         $hof = HeadOfFamily::create($validated);
         return response()->json($hof, 201);
