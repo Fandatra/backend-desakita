@@ -12,6 +12,10 @@ class HeadOfFamilyController extends Controller
         if ($request->user()->role === 'admin') {
             return HeadOfFamily::with('user')->get();
         }
+
+        $heads = HeadOfFamily::with('user')->get();
+        return response()->json($heads);
+
         return HeadOfFamily::where('user_id', $request->user()->id)->with('user')->get();
     }
 

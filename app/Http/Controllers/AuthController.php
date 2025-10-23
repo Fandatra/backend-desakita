@@ -29,8 +29,9 @@ class AuthController extends Controller
         ]);
 
         // otomatis buat entitas kepala keluarga
+        $headOfFamily = null;
         if ($user->role === 'user') {
-            HeadOfFamily::create([
+            $headOfFamily = HeadOfFamily::create([
                 'user_id' => $user->id,
             ]);
         }
@@ -38,6 +39,7 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Register success',
             'user'    => $user,
+            'head_of_family' => $headOfFamily, // ← tambahkan ini
         ], 201);
     }
 
