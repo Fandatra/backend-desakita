@@ -35,7 +35,7 @@ class HeadOfFamilyController extends Controller
 
         if ($request->hasFile('profile_picture')) {
             $path = $request->file('profile_picture')->store('profiles', 'public');
-            $validated['profile_picture'] = $path;
+            $validated['profile_picture'] = $path; // <-- ini sudah benar
         }
 
         $hof = HeadOfFamily::create($validated);
@@ -50,8 +50,23 @@ class HeadOfFamilyController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        return $hof;
+        return response()->json([
+            'data' => [
+                'id' => $hof->id,
+                'user_id' => $hof->user_id,
+                'user_name' => $hof->user?->name ?? 'Tidak ada nama',
+                'profile_picture_url' => $hof->profile_picture ? asset('storage/' . $hof->profile_picture) : null,
+                'nik' => $hof->nik,
+                'gender' => $hof->gender,
+                'date_of_birth' => $hof->date_of_birth,
+                'phone_number' => $hof->phone_number,
+                'address' => $hof->address,
+                'occupation' => $hof->occupation,
+                'marital_status' => $hof->marital_status,
+            ]
+        ]);
     }
+
 
     public function update(Request $request, $id)
     {
@@ -61,8 +76,31 @@ class HeadOfFamilyController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        $hof->update($request->all());
-        return response()->json($hof);
+        // Validasi data
+        $validated = $request->validate([
+            'profile_picture' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
+            'nik' => 'required|string|unique:head_of_families,nik,' . $id,
+            'gender' => 'required|in:male,female',
+            'date_of_birth' => 'required|date',
+            'phone_number' => 'nullable|string',
+            'address' => 'required|string',
+            'occupation' => 'nullable|string',
+            'marital_status' => 'required|in:single,married,divorced',
+        ]);
+
+        // Jika ada upload file baru
+        if ($request->hasFile('profile_picture')) {
+            $path = $request->file('profile_picture')->store('profiles', 'public');
+            $validated['profile_picture'] = $path;
+        }
+
+        // Update field
+        $hof->update($validated);
+
+        return response()->json([
+            'message' => 'Head of family updated successfully',
+            'data' => $hof
+        ]);
     }
 
     public function destroy(Request $request, $id)
