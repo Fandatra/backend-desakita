@@ -18,6 +18,16 @@ class EventController extends Controller
         return response()->json($events);
     }
 
+    public function publicIndex()
+    {
+        $events = Event::all()->map(function ($event) {
+            $event->event_photo = $event->event_photo ? asset('storage/' . $event->event_photo) : null;
+            return $event;
+        });
+
+        return response()->json($events);
+    }
+
    public function store(Request $request)
     {
         $this->authorizeAdmin($request);

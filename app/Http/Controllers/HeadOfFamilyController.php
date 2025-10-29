@@ -9,14 +9,15 @@ class HeadOfFamilyController extends Controller
 {
     public function index(Request $request)
     {
+        // Jika admin, tampilkan semua kepala keluarga + relasi user & residents
         if ($request->user()->role === 'admin') {
-            return HeadOfFamily::with('user')->get();
+            return HeadOfFamily::with(['user', 'residents'])->get();
         }
 
-        $heads = HeadOfFamily::with('user')->get();
-        return response()->json($heads);
-
-        return HeadOfFamily::where('user_id', $request->user()->id)->with('user')->get();
+        // Jika user biasa, tampilkan hanya miliknya sendiri
+        return HeadOfFamily::with(['user'])
+            ->withCount('residents') // ➕ menambah kolom 'residents_count'
+            ->get();
     }
 
     public function store(Request $request)
@@ -133,6 +134,17 @@ class HeadOfFamilyController extends Controller
         $hof->delete();
 
         return response()->json(['message' => 'Head of family and user deleted successfully']);
+    }
+
+    public function myHead(Request $request)
+    {
+        $head = HeadOfFamily::where('user_id', $request->user()->id)->first();
+
+        if (!$head) {
+            return response()->json(['message' => 'Belum ada data kepala keluarga'], 404);
+        }
+
+        return response()->json($head);
     }
 
 }

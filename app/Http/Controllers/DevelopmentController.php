@@ -19,6 +19,16 @@ class DevelopmentController extends Controller
         return response()->json($devs);
     }
 
+    public function publicIndex()
+    {
+        $devs = Development::latest()->get()->map(function ($dev) {
+            $dev->photo_url = $dev->photo ? asset('storage/' . $dev->photo) : null;
+            return $dev;
+        });
+
+        return response()->json($devs);
+    }
+
     // POST /developments (admin only)
     public function store(Request $request)
     {
