@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Resident;
 use App\Models\HeadOfFamily;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ResidentController extends Controller
 {
@@ -31,12 +32,19 @@ class ResidentController extends Controller
             'occupation'        => 'nullable|string',
             'marital_status'    => 'required|in:single,married',
             'relation'          => 'required|string',
+            'photo'             => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
         // cek kepemilikan
         $hof = HeadOfFamily::findOrFail($validated['head_of_family_id']);
         if ($request->user()->role !== 'admin' && $hof->user_id !== $request->user()->id) {
             abort(403, 'Unauthorized');
+        }
+
+        // simpan foto kalau ada
+        if ($request->hasFile('photo')) {
+            $path = $request->file('photo')->store('resident_photos', 'public');
+            $validated['photo'] = $path;
         }
 
         $resident = Resident::create($validated);
@@ -62,7 +70,30 @@ class ResidentController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        $resident->update($request->all());
+        $validated = $request->validate([
+            'name'              => 'sometimes|required|string|max:255',
+            'nik'               => 'sometimes|required|string|unique:residents,nik,' . $resident->id,
+            'gender'            => 'sometimes|required|in:male,female',
+            'date_of_birth'     => 'sometimes|required|date',
+            'phone_number'      => 'nullable|string',
+            'occupation'        => 'nullable|string',
+            'marital_status'    => 'sometimes|required|in:single,married',
+            'relation'          => 'sometimes|required|string',
+            'photo'             => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
+
+        if ($request->hasFile('photo')) {
+            // hapus foto lama kalau ada
+            if ($resident->photo && Storage::disk('public')->exists($resident->photo)) {
+                Storage::disk('public')->delete($resident->photo);
+            }
+
+            // upload foto baru
+            $path = $request->file('photo')->store('resident_photos', 'public');
+            $validated['photo'] = $path;
+        }
+
+        $resident->update($validated);
         return response()->json($resident);
     }
 

@@ -36,7 +36,7 @@ class HeadOfFamily extends Model
 
     public function residents(): HasMany
     {
-        return $this->hasMany(Resident::class);
+        return $this->hasMany(Resident::class, 'head_of_family_id');
     }
 
     public function aidApplications(): HasMany

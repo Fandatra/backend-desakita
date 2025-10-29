@@ -20,14 +20,25 @@ class Resident extends Model
         'occupation',
         'marital_status',
         'relation',
+        'photo',
     ];
 
     protected $casts = [
         'date_of_birth' => 'date',
     ];
 
+    protected $appends = ['photo_url'];
+
+    public function getPhotoUrlAttribute()
+    {
+        if ($this->photo) {
+            return asset('storage/' . $this->photo);
+        }
+        return null;
+    }
+
     public function headOfFamily(): BelongsTo
     {
-        return $this->belongsTo(HeadOfFamily::class);
+        return $this->belongsTo(HeadOfFamily::class, 'head_of_family_id');
     }
 }
