@@ -12,17 +12,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('developments', function (Blueprint $table) {
-    $table->id();
-    $table->string('title');
-$table->string('pic')->nullable();
- // person in charge
-    $table->text('description')->nullable();
-    $table->string('location');
-    $table->enum('status', ['planning', 'ongoing', 'completed'])->default('planning');
-    $table->decimal('budget', 15, 2)->default(0);
-    $table->date('start_date');
-    $table->date('end_date')->nullable();
-    $table->timestamps();
+        $table->id();
+        $table->string('title');
+        $table->string('pic')->nullable();
+        // person in charge
+        $table->text('description')->nullable();
+        $table->string('location');
+        $table->enum('status', ['planning', 'ongoing', 'completed'])->default('planning');
+        $table->decimal('budget', 15, 2)->default(0);
+        $table->date('start_date');
+        $table->date('end_date')->nullable();
+        $table->timestamps();
 });
 
     }

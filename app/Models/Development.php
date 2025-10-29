@@ -18,6 +18,7 @@ class Development extends Model
         'budget',
         'start_date',
         'end_date',
+        'photo',
     ];
 
     protected $casts = [

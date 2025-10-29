@@ -55,6 +55,7 @@ class HeadOfFamilyController extends Controller
                 'id' => $hof->id,
                 'user_id' => $hof->user_id,
                 'user_name' => $hof->user?->name ?? 'Tidak ada nama',
+                'user_email' => $hof->user?->email ?? 'Tidak ada email',
                 'profile_picture_url' => $hof->profile_picture ? asset('storage/' . $hof->profile_picture) : null,
                 'nik' => $hof->nik,
                 'gender' => $hof->gender,
@@ -86,7 +87,19 @@ class HeadOfFamilyController extends Controller
             'address' => 'required|string',
             'occupation' => 'nullable|string',
             'marital_status' => 'required|in:single,married,divorced',
+            'email' => 'nullable|email|unique:users,email,' . ($hof->user_id ?? 'NULL'),
         ]);
+
+        // Update nama dan alamat email user juga
+        if ($hof->user) {
+            if ($request->filled('name')) {
+                $hof->user->name = $request->name;
+            }
+            if ($request->filled('email')) {
+                $hof->user->email = $request->email;
+            }
+            $hof->user->save();
+        }
 
         // Jika ada upload file baru
         if ($request->hasFile('profile_picture')) {
@@ -105,13 +118,21 @@ class HeadOfFamilyController extends Controller
 
     public function destroy(Request $request, $id)
     {
-        $hof = HeadOfFamily::findOrFail($id);
+        $hof = HeadOfFamily::with('user')->findOrFail($id);
 
         if ($request->user()->role !== 'admin' && $hof->user_id !== $request->user()->id) {
             abort(403, 'Unauthorized');
         }
 
+        // Hapus akun user yang terhubung
+        if ($hof->user) {
+            $hof->user->delete();
+        }
+
+        // Hapus head of family
         $hof->delete();
-        return response()->json(['message' => 'Deleted successfully']);
+
+        return response()->json(['message' => 'Head of family and user deleted successfully']);
     }
+
 }
