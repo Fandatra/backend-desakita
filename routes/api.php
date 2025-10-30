@@ -41,7 +41,5 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::post('/my-aid-applications', [AidApplicationController::class, 'store']);
         Route::get('/my-aid-applications', [AidApplicationController::class, 'myApplications']);
-
-        Route::get('/developments', [DevelopmentController::class, 'publicIndex']);
     });
 });
