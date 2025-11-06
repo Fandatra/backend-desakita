@@ -147,4 +147,9 @@ class HeadOfFamilyController extends Controller
         return response()->json($head);
     }
 
+    public function myAids(Request $request)
+    {
+        $head = $request->user()->headOfFamily; // relasi dari User ke HeadOfFamily
+        return $head->receivedAids()->withPivot(['status', 'received_nominal', 'notes'])->get();
+    }
 }

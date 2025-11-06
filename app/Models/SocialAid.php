@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SocialAid extends Model
 {
@@ -25,8 +24,11 @@ class SocialAid extends Model
         'nominal' => 'decimal:2',
     ];
 
-    public function applications(): HasMany
+    public function recipients()
     {
-        return $this->hasMany(AidApplication::class);
+        return $this->belongsToMany(HeadOfFamily::class, 'social_aid_recipients')
+                    ->withPivot(['status', 'received_nominal', 'notes'])
+                    ->withTimestamps();
     }
+
 }

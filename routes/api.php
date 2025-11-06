@@ -6,10 +6,10 @@ use App\Http\Controllers\{
     DevelopmentController,
     EventController,
     SocialAidController,
-    AidApplicationController,
     UserController,
     HeadOfFamilyController,
-    ResidentController
+    ResidentController,
+    SocialAidRecipientController
 };
 use App\Models\HeadOfFamily;
 
@@ -29,17 +29,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('head-of-families', HeadOfFamilyController::class);
         Route::apiResource('residents', ResidentController::class);
         Route::apiResource('social-aids', SocialAidController::class);
-        Route::apiResource('aid-applications', AidApplicationController::class);
         Route::apiResource('developments', DevelopmentController::class);
         Route::apiResource('events', EventController::class);
+        Route::post('/social-aids/{socialAid}/recipients', [SocialAidRecipientController::class, 'store']);
+        Route::get('/social-aids/{socialAid}/recipients', [SocialAidController::class, 'recipients']);
     });
 
     // Kepala Keluarga
     Route::middleware('role:user')->group(function () {
         Route::get('/my-head-of-family', [HeadOfFamilyController::class, 'myHead']);
         Route::apiResource('my-residents', ResidentController::class)->only(['index','show','store','update','destroy']);
-
-        Route::post('/my-aid-applications', [AidApplicationController::class, 'store']);
-        Route::get('/my-aid-applications', [AidApplicationController::class, 'myApplications']);
+        Route::get('/my-aids', [HeadOfFamilyController::class, 'myAids'])->middleware('role:user');
     });
 });

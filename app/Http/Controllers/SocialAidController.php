@@ -57,4 +57,38 @@ class SocialAidController extends Controller
             abort(403, 'Unauthorized');
         }
     }
+
+    public function recipients($id)
+    {
+        $aid = SocialAid::with('recipients')->findOrFail($id);
+        return response()->json($aid->recipients);
+    }
+
+    public function updateRecipient(Request $request, $socialAidId, $headOfFamilyId)
+    {
+        $validated = $request->validate([
+            'status' => 'in:approved,pending,rejected,distributed',
+            'received_nominal' => 'nullable|numeric',
+            'notes' => 'nullable|string'
+        ]);
+
+        $socialAid = SocialAid::findOrFail($socialAidId);
+        $socialAid->recipients()->updateExistingPivot($headOfFamilyId, $validated);
+
+        return response()->json(['message' => 'Recipient status updated']);
+    }
+
+    public function summary($id)
+    {
+        $aid = SocialAid::withCount(['recipients as total_recipients'])
+            ->withCount([
+                'recipients as distributed_count' => function ($query) {
+                    $query->wherePivot('status', 'distributed');
+                }
+            ])
+            ->findOrFail($id);
+
+        return response()->json($aid);
+    }
+
 }
