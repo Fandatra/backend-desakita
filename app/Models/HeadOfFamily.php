@@ -39,8 +39,11 @@ class HeadOfFamily extends Model
         return $this->hasMany(Resident::class, 'head_of_family_id');
     }
 
-    public function aidApplications(): HasMany
+    public function receivedAids()
     {
-        return $this->hasMany(AidApplication::class);
+        return $this->belongsToMany(SocialAid::class, 'social_aid_recipients')
+                    ->withPivot(['status', 'received_nominal', 'notes'])
+                    ->withTimestamps();
     }
+
 }
