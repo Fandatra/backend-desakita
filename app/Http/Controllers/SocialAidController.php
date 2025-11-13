@@ -47,13 +47,11 @@ class SocialAidController extends Controller
 
     public function show($id)
     {
-        return SocialAid::findOrFail($id);
-
+        $aid = SocialAid::findOrFail($id);
         if ($aid->thumbnail) {
             $aid->thumbnail = asset('storage/' . $aid->thumbnail);
         }
-
-        return response()->json($aid, 201);
+        return response()->json($aid);
     }
 
     public function update(Request $request, $id)
@@ -61,7 +59,14 @@ class SocialAidController extends Controller
         $this->authorizeAdmin($request);
 
         $aid = SocialAid::findOrFail($id);
-        $aid->update($request->all());
+
+        $data = $request->all();
+
+        if ($request->hasFile('thumbnail')) {
+            $data['thumbnail'] = $request->file('thumbnail')->store('thumbnails', 'public');
+        }
+
+        $aid->update($data);
 
         if ($aid->thumbnail) {
             $aid->thumbnail = asset('storage/' . $aid->thumbnail);
@@ -118,7 +123,7 @@ class SocialAidController extends Controller
             // Orang pertama–ke-$remainder dapat 1 rupiah ekstra
             $amount = $perPersonNominal + ($index < $remainder ? 1 : 0);
             $pivotData[$id] = [
-                'status' => 'distributed',
+                'status' => 'pending',
                 'received_nominal' => $amount,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -196,6 +201,59 @@ class SocialAidController extends Controller
             'total_recipients' => $count,
             'per_person_nominal' => $perPersonNominal,
         ]);
+    }
+
+    public function myAids(Request $request)
+    {
+        $user = $request->user();
+        $head = $user->headOfFamily; // ambil kepala keluarga milik user
+
+        if (!$head) {
+            return response()->json([], 200); // jika belum punya data kepala keluarga
+        }
+
+        $aids = $head->receivedAids()->withPivot('status', 'received_nominal')->get();
+
+        $aids->transform(function ($aid) {
+            if ($aid->thumbnail) {
+                $aid->thumbnail = asset('storage/' . $aid->thumbnail);
+            }
+            return $aid;
+        });
+
+        return response()->json($aids);
+    }
+
+    public function updateMyStatus(Request $request, $socialAidId)
+    {
+        $user = $request->user();
+        $head = $user->headOfFamily;
+
+        if (!$head) {
+            return response()->json(['message' => 'Anda belum terdaftar sebagai kepala keluarga'], 400);
+        }
+
+        $validated = $request->validate([
+            'status' => 'required|in:approved,rejected,distributed',
+        ]);
+
+        $socialAid = SocialAid::findOrFail($socialAidId);
+
+        // Pastikan user memang penerima bantuan ini
+        $recipient = $socialAid->recipients()->where('head_of_family_id', $head->id)->first();
+        if (!$recipient) {
+            return response()->json(['message' => 'Anda bukan penerima bantuan ini'], 403);
+        }
+
+
+
+        // Update status di pivot
+        $socialAid->recipients()->updateExistingPivot($head->id, [
+            'status' => $validated['status'],
+            'updated_at' => now(),
+        ]);
+
+        return response()->json(['message' => 'Status bantuan berhasil diperbarui']);
     }
 
     public function summary($id)
