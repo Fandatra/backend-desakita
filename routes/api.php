@@ -20,6 +20,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanc
 Route::get('/public/developments', [DevelopmentController::class, 'publicIndex']);
 Route::get('/public/events', [EventController::class, 'publicIndex']);
 
+Route::middleware('auth:sanctum')->put('/social-aids/{id}/recipient-status', [SocialAidController::class, 'updateMyStatus']);
 
 Route::middleware('auth:sanctum')->group(function () {
 
@@ -41,6 +42,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('role:user')->group(function () {
         Route::get('/my-head-of-family', [HeadOfFamilyController::class, 'myHead']);
         Route::apiResource('my-residents', ResidentController::class)->only(['index','show','store','update','destroy']);
-        Route::get('/my-aids', [HeadOfFamilyController::class, 'myAids'])->middleware('role:user');
-    });
+        Route::get('/my-aids', [SocialAidController::class, 'myAids'])->middleware('role:user');    });
 });
