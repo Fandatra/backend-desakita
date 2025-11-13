@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('social_aid_id')->constrained('social_aids')->onDelete('cascade');
             $table->foreignId('head_of_family_id')->constrained('head_of_families')->onDelete('cascade');
-            $table->enum('status', ['approved', 'distributed'])->default('approved');
+            $table->enum('status', ['approved', 'pending', 'rejected', 'distributed'])->default('distributed');
             $table->decimal('received_nominal', 15, 2)->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
