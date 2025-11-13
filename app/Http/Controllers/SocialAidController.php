@@ -9,12 +9,15 @@ class SocialAidController extends Controller
 {
     public function index()
     {
-        $aids = SocialAid::all()->map(function ($aid) {
-            if ($aid->thumbnail) {
-                $aid->thumbnail = asset('storage/' . $aid->thumbnail);
-            }
-            return $aid;
-        });
+        $aids = SocialAid::with('recipients') // <-- ini penting
+            ->get()
+            ->map(function ($aid) {
+                if ($aid->thumbnail) {
+                    $aid->thumbnail = asset('storage/' . $aid->thumbnail);
+                }
+                return $aid;
+            });
+
         return response()->json($aids);
     }
 
@@ -148,6 +151,51 @@ class SocialAidController extends Controller
         $socialAid->recipients()->updateExistingPivot($headOfFamilyId, $validated);
 
         return response()->json(['message' => 'Recipient status updated']);
+    }
+
+    public function updateRecipients(Request $request, $socialAidId)
+    {
+        $this->authorizeAdmin($request);
+
+        $validated = $request->validate([
+            'head_of_family_ids' => 'required|array',
+            'head_of_family_ids.*' => 'exists:head_of_families,id',
+        ]);
+
+        $socialAid = SocialAid::findOrFail($socialAidId);
+
+        // Hapus semua penerima lama dan ganti dengan yang baru
+        $socialAid->recipients()->sync([]);
+
+        $ids = $validated['head_of_family_ids'];
+        $count = count($ids);
+
+        if ($count === 0) {
+            return response()->json(['message' => 'Tidak ada penerima yang dipilih'], 400);
+        }
+
+        // Pembagian nominal seperti sebelumnya
+        $perPersonNominal = intdiv($socialAid->nominal, $count);
+        $remainder = $socialAid->nominal % $count;
+
+        $pivotData = [];
+        foreach ($ids as $index => $id) {
+            $amount = $perPersonNominal + ($index < $remainder ? 1 : 0);
+            $pivotData[$id] = [
+                'status' => 'distributed',
+                'received_nominal' => $amount,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+        }
+
+        $socialAid->recipients()->sync($pivotData);
+
+        return response()->json([
+            'message' => 'Daftar penerima berhasil diperbarui.',
+            'total_recipients' => $count,
+            'per_person_nominal' => $perPersonNominal,
+        ]);
     }
 
     public function summary($id)
