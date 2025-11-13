@@ -31,8 +31,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('social-aids', SocialAidController::class);
         Route::apiResource('developments', DevelopmentController::class);
         Route::apiResource('events', EventController::class);
-        Route::post('/social-aids/{socialAid}/recipients', [SocialAidRecipientController::class, 'store']);
         Route::get('/social-aids/{socialAid}/recipients', [SocialAidController::class, 'recipients']);
+        Route::post('/social-aids/{id}/recipients', [SocialAidController::class, 'addRecipients']);
     });
 
     // Kepala Keluarga
