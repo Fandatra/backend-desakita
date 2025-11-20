@@ -108,4 +108,19 @@ class ResidentController extends Controller
         $resident->delete();
         return response()->json(['message' => 'Deleted successfully']);
     }
+
+    public function byHeadOfFamily($id)
+    {
+        $residents = Resident::where('head_of_family_id', $id)->get();
+
+        $residents->transform(function ($resident) {
+            $resident->photo_url = $resident->photo
+                ? asset('storage/' . $resident->photo)
+                : null;
+            return $resident;
+        });
+
+        return response()->json($residents);
+    }
+
 }

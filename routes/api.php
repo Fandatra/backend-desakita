@@ -22,12 +22,14 @@ Route::get('/public/events', [EventController::class, 'publicIndex']);
 
 Route::middleware('auth:sanctum')->put('/social-aids/{id}/recipient-status', [SocialAidController::class, 'updateMyStatus']);
 
+
 Route::middleware('auth:sanctum')->group(function () {
 
     //Admin / Kepala Desa
     Route::middleware('role:admin')->group(function () {
         Route::apiResource('users', UserController::class);
         Route::apiResource('head-of-families', HeadOfFamilyController::class);
+        Route::get('head-of-families/{id}/residents', [ResidentController::class, 'byHeadOfFamily']);
         Route::apiResource('residents', ResidentController::class);
         Route::apiResource('social-aids', SocialAidController::class);
         Route::apiResource('developments', DevelopmentController::class);
